@@ -1,8 +1,9 @@
 // Level 4 Web Development Project - Backend API
+// Product API Backend System - Feature Branch Development
+
 const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
-const productRoutes = require('./routes/productRoutes');
 
 // Load environment config
 dotenv.config();
@@ -15,22 +16,18 @@ const app = express();
 // Body Parser Middleware
 app.use(express.json());
 
-// Mount Routing Files
-app.use('/api/products', productRoutes);
+// 1. Mount All Routing Files (Grouped Together)
+app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/cart', require('./routes/cartRoutes'));
+app.use('/api/orders', require('./routes/orderRoutes')); 
 
-const PORT = process.env.PORT ||5000;
+// 2. Global Error Handler Middleware (MUST BE LAST ROUTE/MIDDLEWARE)
 const errorHandler = require('./middleware/errorMiddleware');
-
 app.use(errorHandler);
 
-app.use('/api/cart', require('./routes/cartRoutes'));
-
-// Mount Routing Files
-app.use('/api/products', productRoutes);
-app.use('/api/cart', require('./routes/cartRoutes'));
-app.use('/api/orders', require('./routes/orderRoutes')); // 👈 Add this line here!
-
+// 3. Start Server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running in environment mode on port: ${PORT}`);
 });
-
