@@ -6,17 +6,20 @@ const {
     removeItemFromCart, 
     clearCart 
 } = require('../controllers/cartController');
+const { protect } = require('../middleware/authMiddleware');
 
-// @route   POST /api/cart
-router.post('/', addToCart);
+// Secure all cart routes below with token authentication
+router.use(protect); 
 
-// @route   GET /api/cart/:userId
-router.get('/:userId', getCart);
+// Handles: POST /api/cart (Add/Update item) & GET /api/cart (Fetch user cart)
+router.route('/')
+    .post(addToCart)
+    .get(getCart);
 
-// @route   DELETE /api/cart/remove
+// Handles: DELETE /api/cart/remove (Remove a single product)
 router.delete('/remove', removeItemFromCart);
 
-// @route   DELETE /api/cart/clear/:userId
-router.delete('/clear/:userId', clearCart);
+// Handles: DELETE /api/cart/clear (Clear the entire cart)
+router.delete('/clear', clearCart);
 
 module.exports = router;

@@ -1,34 +1,35 @@
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 
+// Helper to provide a fallback dummy userId if none is passed in the request
+const getFallbackUserId = (id) => id || "6686b0000000000000000001";
+
+// @desc    Add item to cart or update quantity
+// @route   POST /api/cart
 // @desc    Add item to cart or update quantity
 // @route   POST /api/cart
 exports.addToCart = async (req, res, next) => {
     try {
-        const { userId, productId, quantity } = req.body;
+        const { productId, quantity } = req.body;
+        const userId = req.user.id; // ⚡ Read directly from the authenticated user token!
 
-        // 1. Check if the product exists
         const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        // 2. Find or create the user's cart
         let cart = await Cart.findOne({ userId });
         if (!cart) {
             cart = new Cart({ userId, items: [], totalPrice: 0 });
         }
 
-        // 3. Check if product already exists in the cart
         const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
-
         if (itemIndex > -1) {
             cart.items[itemIndex].quantity += Number(quantity);
         } else {
             cart.items.push({ productId, quantity: Number(quantity) });
         }
 
-        // 4. Recalculate total price dynamically
         let total = 0;
         for (let item of cart.items) {
             const itemProduct = await Product.findById(item.productId);
@@ -38,36 +39,25 @@ exports.addToCart = async (req, res, next) => {
         }
         cart.totalPrice = total;
 
-        // 5. Save cart to MongoDB
         await cart.save();
-        
-        res.status(200).json({
-            success: true,
-            message: 'Cart updated successfully',
-            data: cart
-        });
-
+        res.status(200).json({ success: true, message: 'Cart updated successfully', data: cart });
     } catch (error) {
         next(error);
     }
 };
 
 // @desc    Get user's cart with populated product details
-// @route   GET /api/cart/:userId
+// @route   GET /api/cart
 exports.getCart = async (req, res, next) => {
     try {
-        const { userId } = req.params;
+        const userId = req.user.id; // ⚡ No more url path params needed!
 
         const cart = await Cart.findOne({ userId }).populate('items.productId', 'name price image');
-
         if (!cart) {
             return res.status(404).json({ message: 'No cart found for this user' });
         }
 
-        res.status(200).json({
-            success: true,
-            data: cart
-        });
+        res.status(200).json({ success: true, data: cart });
     } catch (error) {
         next(error);
     }
@@ -75,9 +65,12 @@ exports.getCart = async (req, res, next) => {
 
 // @desc    Remove a single item from the cart
 // @route   DELETE /api/cart/remove
+// @desc    Remove a single item from the cart
+// @route   DELETE /api/cart/remove
 exports.removeItemFromCart = async (req, res, next) => {
     try {
-        const { userId, productId } = req.body;
+        const { productId } = req.body;
+        const userId = req.user.id; // ⚡ Read directly from the token!
 
         const cart = await Cart.findOne({ userId });
         if (!cart) {
@@ -97,7 +90,6 @@ exports.removeItemFromCart = async (req, res, next) => {
         }
         cart.totalPrice = total;
 
-        // Save the updated cart
         await cart.save();
 
         res.status(200).json({
@@ -111,10 +103,10 @@ exports.removeItemFromCart = async (req, res, next) => {
 };
 
 // @desc    Manually clear the entire cart
-// @route   DELETE /api/cart/clear/:userId
+// @route   DELETE /api/cart/clear
 exports.clearCart = async (req, res, next) => {
     try {
-        const { userId } = req.params;
+        const userId = req.user.id; // ⚡ Read directly from the token!
 
         const cart = await Cart.findOne({ userId });
         if (!cart) {
