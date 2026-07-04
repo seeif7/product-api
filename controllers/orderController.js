@@ -6,7 +6,7 @@ const Product = require('../models/Product');
 // @route   POST /api/orders/checkout
 exports.checkout = async (req, res, next) => {
     try {
-        const { userId } = req.body;
+        const userId = req.user.id;
 
         // 1. Fetch user's cart and populate product details to check inventory
         const cart = await Cart.findOne({ userId }).populate('items.productId');
@@ -56,19 +56,52 @@ exports.checkout = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};// @desc    Get all orders for a specific user
-// @route   GET /api/orders/:userId
+};
+
+// @desc    Get all orders for the authenticated user
+// @route   GET /api/orders
 exports.getUserOrders = async (req, res, next) => {
     try {
-        const { userId } = req.params;
+        // ⚡ Read directly from the verified token instead of req.params
+        const userId = req.user.id; 
 
-        // Find all orders matching the userId and populate the product details inside the items array
+        // Find all orders matching this specific user
         const orders = await Order.find({ userId }).populate('items.productId', 'name price');
 
         res.status(200).json({
             success: true,
             count: orders.length,
             data: orders
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+// @desc    Update order status (Admin feature)
+// @route   PUT /api/orders/:id/status
+exports.updateOrderStatus = async (req, res, next) => {
+    try {
+        const { status } = req.body;
+
+        // Validate the incoming status value
+        const allowedStatuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({ message: 'Invalid order status value' });
+        }
+
+        // Find the order by ID and update its status
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        order.status = status;
+        await order.save();
+
+        res.status(200).json({
+            success: true,
+            message: `Order status updated to ${status}`,
+            order
         });
     } catch (error) {
         next(error);

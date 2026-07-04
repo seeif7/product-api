@@ -1,11 +1,14 @@
+
 const express = require('express');
 const router = express.Router();
-const { checkout, getUserOrders } = require('../controllers/orderController');
+const { checkout, getUserOrders, updateOrderStatus } = require('../controllers/orderController');
+const { protect } = require('../middleware/authMiddleware');
 
-// @route   POST /api/orders/checkout
-router.post('/checkout', checkout);
+// Secure all order routes with protection middleware
+router.post('/checkout', protect, checkout);
+router.get('/', protect, getUserOrders);
 
-// @route   GET /api/orders/:userId
-router.get('/:userId', getUserOrders);
+// ⚡ 7.4: Update Order Status Route
+router.put('/:id/status', protect, updateOrderStatus);
 
 module.exports = router;
