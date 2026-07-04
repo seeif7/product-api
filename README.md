@@ -56,4 +56,8 @@ PUT /api/orders/:id/status - Update an order's status tracking tag (Admin/Token 
 
 my GitHub repo link
 
-* https://github.com/seeif7/product-api 
+* https://github.com/seeif7/product-api
+
+my postman
+
+* https://sayfhassan584-5493989.postman.co/workspace/seif's-Workspace~cda3fa78-2824-46d6-8fbb-5fae44bda40a/request/56308611-fff9294b-49ee-4458-9259-b6d1fbc0ebfd?action=share&creator=56308611&active-environment=56308611-fbdeb08a-b72d-4dc5-a8c1-32bd57109ddd 
