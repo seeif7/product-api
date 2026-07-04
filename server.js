@@ -1,4 +1,6 @@
 // Level 4 Web Development Project - Backend API
+// Product API Backend System - Feature Branch Development
+
 const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
